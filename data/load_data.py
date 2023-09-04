@@ -76,7 +76,7 @@ def load_data_by_args(root,args):  # read
                 np.vstack((graph.row, graph.col)).astype(np.long))
             x = torch.from_numpy(feats).to(torch.float)
 
-            print('val', x.shape[0],x.shape[1], edge_index.shape[1])
+
 
             data = Data(edge_index=edge_index, x=x)
             data.name = dataset
@@ -93,7 +93,6 @@ def load_data_by_args(root,args):  # read
 
 
 
-    print('test_data')
     test_data = []
 
     for id,dataset in enumerate( args.test_dataset):
@@ -109,7 +108,7 @@ def load_data_by_args(root,args):  # read
                 np.vstack((graph.row, graph.col)).astype(np.long))
             x = torch.from_numpy(feats).to(torch.float)
 
-            print('val', x.shape[0],x.shape[1], edge_index.shape[1])
+
 
             data = Data(edge_index=edge_index, x=x)
             data.name = dataset

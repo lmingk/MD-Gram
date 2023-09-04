@@ -66,7 +66,7 @@ def test_md_gram(args, device):
     for graph in test_data:
         name = graph.name + str(graph.id)
         model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/trained_models/{}/meta_model_for_{}_0.pth'.format(dataset,dataset), map_location=torch.device('cpu')), strict=True)
+        model.load_state_dict(torch.load('./model/trained_models/{}/meta_model_for_{}_0.pth'.format(dataset,dataset)), strict=True)
         mean_space = np.load('./model/trained_models/{}/meta_space_for_{}_0.npy'.format(dataset,dataset))
         mlp = space_align(mean_space, args.node_num, graph, args, device)
         mlp.cpu()
@@ -75,8 +75,6 @@ def test_md_gram(args, device):
         train_graph(mlp,model, graph,optimizer,device,file)
         file.write('\n\n\n')
         file.flush()
-
-
 
 
 
@@ -186,6 +184,7 @@ for data in ['product','academic','reddit','yelp' ]:
     args.train_dataset = news
     md_gram(args, device) # train
     test_md_gram(args, device) # test
+
 
 
 

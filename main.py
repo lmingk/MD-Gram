@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_dataset', type=list, default=['yelp','academic','reddit' ])
 parser.add_argument('--train_graph_ids', type=list, default=[[i for i in range(5)]]*3)
 parser.add_argument('--test_dataset', type=list, default=['product'])
-parser.add_argument('--val_graph_ids', type=list, default=[[i for i in range(10,15)]])
+parser.add_argument('--val_graph_ids', type=list, default=[[i for i in range(0)]])
 parser.add_argument('--test_graph_ids', type=list, default=[[i for i in range(0,5)]])
 parser.add_argument('--share_dims', type=int, default=256)
 parser.add_argument('--hidden_dims', type=int, default=128)
@@ -66,8 +66,8 @@ def test_md_gram(args, device):
     for graph in test_data:
         name = graph.name + str(graph.id)
         model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/meta_model_for_{}.pth'.format(dataset)), strict=True)
-        mean_space = np.load('./model/meta_space_for_{}.npy'.format(dataset))
+        model.load_state_dict(torch.load('./model/trained_models/{}/meta_model_for_{}_0.pth'.format(dataset,dataset), map_location=torch.device('cpu')), strict=True)
+        mean_space = np.load('./model/trained_models/{}/meta_space_for_{}_0.npy'.format(dataset,dataset))
         mlp = space_align(mean_space, args.node_num, graph, args, device)
         mlp.cpu()
         optimizer = torch.optim.Adam( [{'params':mlp.parameters(),'lr':0.001},{'params':model.parameters()}],lr=0.001, weight_decay=5e-4)
@@ -79,74 +79,6 @@ def test_md_gram(args, device):
 
 
 
-
-
-def test_md_gram_all(args, device):
-    dataset = args.test_dataset[0]
-    root = './meta_graph/'
-    train_data, val_data, test_data = load_data_by_args(root, args)
-
-    file = open('./model/test_for_{}_all_pre.csv'.format(dataset), 'w')
-    print('mdgram_all_with_preprocess')
-    for graph in test_data:
-        name = graph.name + str(graph.id)
-        model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/meta_model_for_{}.pth'.format(dataset)), strict=True)
-        mean_space = np.load('./model/meta_space_for_{}.npy'.format(dataset))
-        mlp = space_align(mean_space, args.node_num, graph, args, device)
-        mlp.cpu()
-        optimizer = torch.optim.Adam( [{'params':mlp.parameters(),'lr':0.001},{'params':model.parameters()}],lr=0.001, weight_decay=5e-4)
-        file.write(name+'\n')
-        train_graph(mlp,model, graph,optimizer,device,file)
-        file.write('\n\n\n')
-        file.flush()
-
-    file = open('./model/test_for_{}_mlp_pre.csv'.format(dataset), 'w')
-    print('mdgram_mlp_with_preprocess')
-    for graph in test_data:
-        name = graph.name + str(graph.id)
-        model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/meta_model_for_{}.pth'.format(dataset)), strict=True)
-        mean_space = np.load('./model/meta_space_for_{}.npy'.format(dataset))
-        mlp = space_align(mean_space, args.node_num, graph, args, device)
-        mlp.cpu()
-        optimizer = torch.optim.Adam( [{'params':mlp.parameters(),'lr':0.001},{'params':model.parameters()}],lr=0.00, weight_decay=5e-4)
-        file.write(name+'\n')
-        train_graph(mlp,model, graph,optimizer,device,file)
-        file.write('\n\n\n')
-        file.flush()
-
-    file = open('./model/test_for_{}_all.csv'.format(dataset), 'w')
-    print('mdgram_all_without_preprocess')
-    for graph in test_data:
-        name = graph.name + str(graph.id)
-        model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/meta_model_for_{}.pth'.format(dataset)), strict=True)
-        mean_space = np.load('./model/meta_space_for_{}.npy'.format(dataset))
-        mlp = MLP(graph.x.shape[1],args.hidden_dims,args.share_dims)
-        mlp.reset_parameters()
-        mlp.cpu()
-        optimizer = torch.optim.Adam( [{'params':mlp.parameters(),'lr':0.001},{'params':model.parameters()}],lr=0.001, weight_decay=5e-4)
-        file.write(name+'\n')
-        train_graph(mlp,model, graph,optimizer,device,file)
-        file.write('\n\n\n')
-        file.flush()
-
-    file = open('./model/test_for_{}_mlp.csv'.format(dataset), 'w')
-    print('mdgram_mlp_without_preprocess')
-    for graph in test_data:
-        name = graph.name + str(graph.id)
-        model = MyVGAE(MetaGatedSignatureEncoder(args, args.share_dims, args.output_dims))
-        model.load_state_dict(torch.load('./model/meta_model_for_{}.pth'.format(dataset)), strict=True)
-        mean_space = np.load('./model/meta_space_for_{}.npy'.format(dataset))
-        mlp = MLP(graph.x.shape[1],args.hidden_dims,args.share_dims)
-        mlp.reset_parameters()
-        mlp.cpu()
-        optimizer = torch.optim.Adam( [{'params':mlp.parameters(),'lr':0.001},{'params':model.parameters()}],lr=0.00, weight_decay=5e-4)
-        file.write(name+'\n')
-        train_graph(mlp,model, graph,optimizer,device,file)
-        file.write('\n\n\n')
-        file.flush()
 
 
 
@@ -195,7 +127,7 @@ def md_gram(args, device):
             MLP_pools.update_embeddings(device)
             MLP_pools.update_mean_space()
             meta_model,loss = md_gram_gradient_step(args, meta_model, wdiscriminator, MLP_pools, data, optimizer_wd,
-                                                    optimizer_all, device, epoch)
+                                                    optimizer_all, device)
         if loss<loss_value:
             optimal_model = last_model
             optimal_space = deepcopy(MLP_pools.mean_space)
@@ -256,9 +188,6 @@ for data in ['product','academic','reddit','yelp' ]:
     test_md_gram(args, device) # test
 
 
-
-
-#pip3 install https://data.pyg.org/whl/torch-1.10.0%2Bcu102/torch_spline_conv-1.2.1-cp36-cp36m-linux_x86_64.whl
 
 
 

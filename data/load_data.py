@@ -36,8 +36,8 @@ def load_data_by_args(root,args):  # read
 
     for id,dataset in enumerate( args.train_dataset):
         for i in args.train_graph_ids[id]:
-            feats = np.load(root+ 'origianl/{}/feats{}.npy'.format(dataset,i) )
-            graph = sp.load_npz(root+ 'origianl/{}/graph{}.npz'.format(dataset,i))
+            feats = np.load(root+ 'original/{}/feats{}.npy'.format(dataset,i) )
+            graph = sp.load_npz(root+ 'original/{}/graph{}.npz'.format(dataset,i))
 
             scaler = StandardScaler()
             scaler.fit(feats)
@@ -98,8 +98,8 @@ def load_data_by_args(root,args):  # read
 
     for id,dataset in enumerate( args.test_dataset):
         for i in args.test_graph_ids[id]:
-            feats = np.load(root + '{}/feats{}.npy'.format(dataset, i))
-            graph = sp.load_npz(root + '{}/graph{}.npz'.format(dataset, i))
+            feats = np.load(root + 'original/{}/feats{}.npy'.format(dataset, i))
+            graph = sp.load_npz(root + 'original/{}/graph{}.npz'.format(dataset, i))
 
             scaler = StandardScaler()
             scaler.fit(feats)
